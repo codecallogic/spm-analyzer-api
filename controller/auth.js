@@ -7,6 +7,7 @@ exports.login = async (req, res) => {
   try {
     let user = await Parse.User.logIn(req.body.email, req.body.password)
     const loggedInUser = new Object()
+    loggedInUser.id = user.id
     loggedInUser.username = user.get('username')
     loggedInUser.email = user.get('email')
     loggedInUser.subscription = user.get('currentSubscriptionPlan')
@@ -17,7 +18,7 @@ exports.login = async (req, res) => {
       httpOnly: true,
       secure: false,
       overwrite: true
-    }).send('User is logged in')
+    }).send(loggedInUser)
   } catch (error) {
     return res.status(400).json('User does not exist')
   }
