@@ -23,3 +23,17 @@ exports.login = async (req, res) => {
     return res.status(400).json('User does not exist')
   }
 }
+
+exports.register = async (req, res) => {
+  let user = new Parse.User();
+    user.set("username", req.body.email);
+    user.set("password", req.body.password);
+    user.set("email", req.body.email);
+    user.set("currentSubscriptionPlan", 0);
+  
+    user.signUp().then(function(user) {
+        console.log('User created successful with name: ' + user.get("username") + ' and email: ' + user.get("email") + ' with subscription: ' + user.get("currentSubscriptionPlan"));
+    }).catch(function(error){
+      return res.status(400).json(error.message)
+  });
+}
