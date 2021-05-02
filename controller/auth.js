@@ -32,7 +32,19 @@ exports.register = async (req, res) => {
     user.set("currentSubscriptionPlan", 0);
   
     user.signUp().then(function(user) {
-        console.log('User created successful with name: ' + user.get("username") + ' and email: ' + user.get("email") + ' with subscription: ' + user.get("currentSubscriptionPlan"));
+      const signedUpUser = new Object()
+      signedUpUser.id = user.id
+      signedUpUser.username = user.get('username')
+      signedUpUser.email = user.get('email')
+      signedUpUser.subscription = user.get('currentSubscriptionPlan')
+      return res.status(202).cookie(
+        "user", JSON.stringify(signedUpUser), {
+        sameSite: 'strict',
+        expires: new Date(new Date().getTime() + (60 * 60 * 1000)),
+        httpOnly: true,
+        secure: false,
+        overwrite: true
+      }).send(signedUpUser)
     }).catch(function(error){
       return res.status(400).json(error.message)
   });
