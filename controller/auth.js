@@ -1,4 +1,5 @@
 const Parse = require('parse/node')
+const axios = require('axios')
 
 Parse.initialize(process.env.BACK4APP_APP_ID, process.env.BACK4APP_JS_KEY)
 Parse.serverURL = 'https://parseapi.back4app.com/'
@@ -31,7 +32,7 @@ exports.register = async (req, res) => {
     user.set("email", req.body.email);
     user.set("currentSubscriptionPlan", 0);
   
-    user.signUp().then(function(user) {
+  user.signUp().then(function(user) {
       const signedUpUser = new Object()
       signedUpUser.id = user.id
       signedUpUser.username = user.get('username')
@@ -47,5 +48,48 @@ exports.register = async (req, res) => {
       }).send(signedUpUser)
     }).catch(function(error){
       return res.status(400).json(error.message)
+  });
+}
+
+exports.changeSubscription = async (req, res) => {
+  let objectId = req.body.changeUserSubscription.id
+  let changeCurrentSubscriptionPlan = req.body.subscriptionValue
+
+  try {
+    const responseChangeSubscription = await axios.post(`https://${process.env.BACK4APP_APP_ID}:javascript-key=${process.env.BACK4APP_JS_KEY}@spmanalyzernew.b4a.app/functions/editUserProperty`, {objectId, changeCurrentSubscriptionPlan})
+    
+    const Users = Parse.Object.extend("User");
+    const gettingUsers = new Parse.Query(Users);
+
+    gettingUsers.get(req.body.changeUserSubscription.id)
+    .then((user) => {
+      const updatedUser = new Object()
+      updatedUser.id = user.id
+      updatedUser.username = user.get('username')
+      updatedUser.email = user.get('email')
+      updatedUser.subscription = user.get('currentSubscriptionPlan')
+      return res.status(202).cookie(
+        "user", JSON.stringify(updatedUser), {
+        sameSite: 'strict',
+        expires: new Date(new Date().getTime() + (60 * 60 * 1000)),
+        httpOnly: true,
+        secure: false,
+        overwrite: true
+      }).send(updatedUser)
+    }, (error) => {
+      console.log(error)
+    });
+    
+  } catch (error) {
+    console.log(error.response)
+  }
+}
+
+exports.forgotPassword = (req, res) => {
+  Parse.User.requestPasswordReset(req.body.email).then(function() {
+    console.log("Password reset request was sent successfully");
+    return res.json("Password reset request was sent successfully")
+  }).catch(function(error) {
+    return res.json(error)
   });
 }
