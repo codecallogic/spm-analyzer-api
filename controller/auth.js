@@ -52,8 +52,12 @@ exports.register = async (req, res) => {
 }
 
 exports.changeSubscription = async (req, res) => {
+  // console.log(req.body)
   let objectId = req.body.changeUserSubscription.id
   let changeCurrentSubscriptionPlan = req.body.subscriptionValue
+
+  // console.log(objectId)
+  // console.log(changeCurrentSubscriptionPlan)
 
   try {
     const responseChangeSubscription = await axios.post(`https://${process.env.BACK4APP_APP_ID}:javascript-key=${process.env.BACK4APP_JS_KEY}@spmanalyzernew.b4a.app/functions/editUserProperty`, {objectId, changeCurrentSubscriptionPlan})

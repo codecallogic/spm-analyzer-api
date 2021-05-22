@@ -17,5 +17,11 @@ app.use(cors({credentials: true, origin: process.env.CLIENT_URL}))
 // API
 app.use('/api/', salesRoutes)
 app.use('/api/auth', authRoutes)
+app.use('/test', (req, res) => {
+  console.log('Hello')
+  console.log(req)
+  console.log(req.body)
+  res.send('Hello')
+})
 
 app.listen(process.env.PORT, () => console.log(`Server is running on port ${process.env.PORT}`))
