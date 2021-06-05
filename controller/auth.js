@@ -1,5 +1,7 @@
 const Parse = require('parse/node')
 const axios = require('axios')
+const { query } = require('express-validator')
+axios.defaults.withCredentials = true
 
 Parse.initialize(process.env.BACK4APP_APP_ID, process.env.BACK4APP_JS_KEY)
 Parse.serverURL = 'https://parseapi.back4app.com/'
@@ -14,7 +16,7 @@ exports.login = async (req, res) => {
     loggedInUser.subscription = user.get('currentSubscriptionPlan')
     return res.status(202).cookie(
       "user", JSON.stringify(loggedInUser), {
-      sameSite: 'strict',
+      sameSite: 'Lax',
       expires: new Date(new Date().getTime() + (60 * 60 * 1000)),
       httpOnly: true,
       secure: false,
@@ -40,7 +42,7 @@ exports.register = async (req, res) => {
       signedUpUser.subscription = user.get('currentSubscriptionPlan')
       return res.status(202).cookie(
         "user", JSON.stringify(signedUpUser), {
-        sameSite: 'strict',
+        sameSite: 'Lax',
         expires: new Date(new Date().getTime() + (60 * 60 * 1000)),
         httpOnly: true,
         secure: false,
@@ -52,26 +54,38 @@ exports.register = async (req, res) => {
 }
 
 exports.changeSubscription = async (req, res) => {
-  // console.log(req.body)
+  console.log(req.body)
   let objectId = req.body.changeUserSubscription.id
   let changeCurrentSubscriptionPlan = req.body.subscriptionValue
-
   // console.log(objectId)
   // console.log(changeCurrentSubscriptionPlan)
-
   try {
     const responseChangeSubscription = await axios.post(`https://${process.env.BACK4APP_APP_ID}:javascript-key=${process.env.BACK4APP_JS_KEY}@spmanalyzernew.b4a.app/functions/editUserProperty`, {objectId, changeCurrentSubscriptionPlan})
+
+    // console.log(responseChangeSubscription)
     
     const Users = Parse.Object.extend("User");
     const gettingUsers = new Parse.Query(Users);
 
-    gettingUsers.get(req.body.changeUserSubscription.id)
-    .then((user) => {
+    // console.log(req.body.changeUserSubscription.username)
+
+    gettingUsers.equalTo("username", req.body.changeUserSubscription.username);
+    gettingUsers.first()
+    .then(function(user){
       const updatedUser = new Object()
-      updatedUser.id = user.id
-      updatedUser.username = user.get('username')
-      updatedUser.email = user.get('email')
-      updatedUser.subscription = user.get('currentSubscriptionPlan')
+      
+      if(user){
+        updatedUser.id = user.id
+        updatedUser.username = user.get('username')
+        updatedUser.email = user.get('email')
+        updatedUser.subscription = user.get('currentSubscriptionPlan')
+        console.log(updatedUser)
+      }else{
+        console.log('Nothing found, please try again')
+
+        return res.status(400).json('Nothing found, please try again')
+      }
+      
       return res.status(202).cookie(
         "user", JSON.stringify(updatedUser), {
         sameSite: 'strict',
